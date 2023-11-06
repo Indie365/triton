@@ -49,6 +49,13 @@ def kernel_device_print_multiple_args(X, Y, BLOCK: tl.constexpr):
 
 
 @triton.jit
+def kernel_device_print_single_element(X, Y, BLOCK: tl.constexpr):
+    x = tl.load(X + tl.arange(0, BLOCK))
+    tl.device_print("x: ", x, elements=[12])
+    tl.store(Y + tl.arange(0, BLOCK), x)
+
+
+@triton.jit
 def kernel_static_print(X, Y, BLOCK: tl.constexpr, PLACEHOLDER: tl.constexpr):
     # This function takes an extra value as a tl.constexpr so this kernel is not
     # cached.  This way the static print is run every time.
@@ -77,6 +84,8 @@ def test_print(func: str, data_type: str):
         kernel_print[(1, )](x, y, BLOCK=shape[0])
     elif func == "device_print_large":
         kernel_device_print_large[(1, 2)](BLOCK_M=64, BLOCK_N=128)
+    elif func == "device_print_single_element":
+        kernel_device_print_single_element[(1, )](x, y, BLOCK=shape[0])
     elif func == "print_multiple_args":
         kernel_print_multiple_args[(1, )](x, y, BLOCK=shape[0])
     elif func == "device_print_multiple_args":
